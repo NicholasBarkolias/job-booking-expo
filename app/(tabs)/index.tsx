@@ -1,98 +1,194 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useAuth } from '@/contexts/AuthContext';
+import { useBookings } from '@/contexts/BookingContext';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const { user } = useAuth();
+  const { bookings, fetchBookings } = useBookings();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  useEffect(() => {
+    if (user) {
+      try {
+        fetchBookings(user.tenantId);
+      } catch (error) {
+        console.error('Failed to fetch bookings in home screen:', error);
+      }
+    }
+  }, [user]);
+
+  const upcomingBookings = bookings.filter(b => 
+    b.status === 'confirmed' || b.status === 'in_progress'
+  );
+
+  const getDaysUntilDue = (dueDate: string) => {
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diffTime = due.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const getTimeUntilDue = (dueDate: string) => {
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diffTime = due.getTime() - now.getTime();
+    
+    if (diffTime < 0) return 'Overdue';
+    
+    const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Welcome back, {user?.name}</Text>
+        <Text style={styles.subtitle}>Jewellery Booking Management</Text>
+      </View>
+
+      <View style={styles.statsContainer}>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>{upcomingBookings.length}</Text>
+          <Text style={styles.statLabel}>Active Jobs</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>{bookings.length}</Text>
+          <Text style={styles.statLabel}>Total Bookings</Text>
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Upcoming Jobs</Text>
+        {upcomingBookings.length === 0 ? (
+          <Text style={styles.emptyText}>No upcoming jobs</Text>
+        ) : (
+          upcomingBookings.map(booking => (
+            <TouchableOpacity key={booking.id} style={styles.bookingCard}>
+              <View style={styles.bookingHeader}>
+                <Text style={styles.bookingTitle}>{booking.description}</Text>
+                <Text style={styles.bookingStatus}>{booking.status}</Text>
+              </View>
+              <Text style={styles.bookingDue}>
+                {getTimeUntilDue(booking.dueDate)}
+              </Text>
+              <Text style={styles.bookingTime}>
+                Est. {booking.timeEstimate} minutes
+              </Text>
+            </TouchableOpacity>
+          ))
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
   },
-  stepContainer: {
-    gap: 8,
+  header: {
+    padding: 20,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    padding: 20,
+    gap: 15,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statNumber: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#007AFF',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#666',
+  },
+  section: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 15,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#999',
+    textAlign: 'center',
+    padding: 20,
+  },
+  bookingCard: {
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  bookingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  bookingTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    flex: 1,
+  },
+  bookingStatus: {
+    fontSize: 12,
+    color: '#007AFF',
+    backgroundColor: '#e3f2fd',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  bookingDue: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  bookingTime: {
+    fontSize: 14,
+    color: '#666',
   },
 });
