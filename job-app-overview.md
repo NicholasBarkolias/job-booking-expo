@@ -17,8 +17,6 @@ A booking and work tracking app and website for the jewellery industry. Allows y
 9. Track jobs received and completed
 10. Take photos when job is received and completed
 
- 11.  Has to connect to a usb camera to take the photos
-
 1. Keep a detailed history of the bookings progress
 
 ---

@@ -1,4 +1,5 @@
 import { Booking, Job, User, TimeSlot } from '@/types';
+import { api as powersyncApi } from './powersync-api';
 
 // Dummy data for development
 const dummyUsers: User[] = [
@@ -66,17 +67,20 @@ const dummyTimeSlots: TimeSlot[] = [
   { id: '3', startTime: '2025-11-06T11:00:00Z', endTime: '2025-11-06T12:00:00Z', available: true },
 ];
 
-// Mock API functions
-export const api = {
+// Export PowerSync-based API as the main API
+export const api = powersyncApi;
+
+// Keep the old dummy API for fallback/testing if needed
+export const dummyApi = {
   // Auth
   async login(email: string, _password: string): Promise<User> {
-    console.log('API: login called with', email);
+    console.log('Dummy API: login called with', email);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     const user = dummyUsers.find(u => u.email === email);
-    console.log('API: found user:', user);
+    console.log('Dummy API: found user:', user);
     if (!user) throw new Error('Invalid credentials');
-    console.log('API: returning user');
+    console.log('Dummy API: returning user');
     return user;
   },
 

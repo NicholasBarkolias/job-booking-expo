@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Booking } from '@/types';
-import { api } from '@/lib/api';
+import { getPowerSyncDatabase } from '@/lib/powersync';
+import { PowerSyncDataService } from '@/lib/powersync-data';
 
 interface BookingContextType {
   bookings: Booking[];
@@ -15,11 +16,31 @@ const BookingContext = createContext<BookingContextType | undefined>(undefined);
 export function BookingProvider({ children }: { children: React.ReactNode }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [dataService, setDataService] = useState<PowerSyncDataService | null>(null);
+
+  useEffect(() => {
+    // Initialize PowerSync data service
+    const initializeBookingService = async () => {
+      try {
+        const db = await getPowerSyncDatabase();
+        const service = new PowerSyncDataService(db);
+        setDataService(service);
+      } catch (error) {
+        console.error('Booking service initialization failed:', error);
+      }
+    };
+
+    initializeBookingService();
+  }, []);
 
   const fetchBookings = async (tenantId: string) => {
     setIsLoading(true);
     try {
-      const bookings = await api.getBookings(tenantId);
+      if (!dataService) {
+        throw new Error('Data service not initialized');
+      }
+      
+      const bookings = await dataService.getBookingsByTenantId(tenantId);
       setBookings(bookings);
     } catch (error) {
       console.error('Failed to fetch bookings:', error);
@@ -30,7 +51,11 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
 
   const createBooking = async (booking: Omit<Booking, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      const newBooking = await api.createBooking(booking);
+      if (!dataService) {
+        throw new Error('Data service not initialized');
+      }
+      
+      const newBooking = await dataService.createBooking(booking);
       setBookings(prev => [...prev, newBooking]);
       return newBooking;
     } catch (error) {
@@ -41,7 +66,11 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
 
   const updateBooking = async (id: string, updates: Partial<Booking>) => {
     try {
-      const updatedBooking = await api.updateBooking(id, updates);
+      if (!dataService) {
+        throw new Error('Data service not initialized');
+      }
+      
+      const updatedBooking = await dataService.updateBooking(id, updates);
       setBookings(prev => prev.map(b => b.id === id ? updatedBooking : b));
       return updatedBooking;
     } catch (error) {
