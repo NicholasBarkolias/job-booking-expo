@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@/types';
+import { authClient } from '@/lib/auth';
 import { getPowerSyncDatabase } from '@/lib/powersync';
 import { PowerSyncDataService } from '@/lib/powersync-data';
 
@@ -18,15 +19,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [dataService, setDataService] = useState<PowerSyncDataService | null>(null);
 
   useEffect(() => {
-    // Initialize PowerSync and check for existing session
     const initializeAuth = async () => {
       try {
+        // Initialize PowerSync
         const db = await getPowerSyncDatabase();
         const service = new PowerSyncDataService(db);
         setDataService(service);
         
-        // In a real app, this would check for stored tokens and validate session
-        // For now, we'll just set loading to false
+        // Check BetterAuth session
+        const session = await authClient.getSession();
+        if (session.data?.user) {
+          // Find user in PowerSync by email
+          const powerSyncUser = await service.getUserByEmail(session.data.user.email);
+          setUser(powerSyncUser);
+        }
+        
         setIsLoading(false);
       } catch (error) {
         console.error('Auth initialization failed:', error);
@@ -41,18 +48,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('AuthContext: login called with', email);
     setIsLoading(true);
     try {
+      // Sign in with BetterAuth
+      const result = await authClient.signIn.email({
+        email,
+        password,
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message || 'Login failed');
+      }
+
+      // Find user in PowerSync
       if (!dataService) {
         throw new Error('Data service not initialized');
       }
       
-      // Find user by email (in real app, would verify password too)
-      const user = await dataService.getUserByEmail(email);
-      if (!user) {
-        throw new Error('Invalid credentials');
+      const powerSyncUser = await dataService.getUserByEmail(email);
+      if (!powerSyncUser) {
+        throw new Error('User not found in local database');
       }
       
-      console.log('AuthContext: login successful, user:', user);
-      setUser(user);
+      console.log('AuthContext: login successful, user:', powerSyncUser);
+      setUser(powerSyncUser);
     } catch (error) {
       console.error('AuthContext: login failed:', error);
       throw error;
@@ -64,7 +81,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     setIsLoading(true);
     try {
-      // In a real app, would clear tokens and session
+      // Sign out with BetterAuth
+      await authClient.signOut();
       setUser(null);
     } catch (error) {
       console.error('Logout failed:', error);
