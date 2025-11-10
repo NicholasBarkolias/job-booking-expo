@@ -1,15 +1,14 @@
 import * as React from "react"
-import { View } from "react-native"
+import { View, Text, StyleSheet } from "react-native"
 import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
 
 const cardVariants = cva(
-  "rounded-lg border bg-card text-card-foreground shadow-sm",
+  "",
   {
     variants: {
       variant: {
-        default: "border-border",
-        outline: "border-2 border-border",
+        default: "",
+        outline: "",
       },
     },
     defaultVariants: {
@@ -17,6 +16,50 @@ const cardVariants = cva(
     },
   }
 )
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 8,
+    borderWidth: 1,
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  default: {
+    borderColor: '#e2e8f0',
+  },
+  outline: {
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+  },
+  header: {
+    flexDirection: 'column',
+    padding: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    lineHeight: 32,
+    letterSpacing: -0.5,
+  },
+  description: {
+    fontSize: 14,
+    color: '#64748b',
+  },
+  content: {
+    padding: 24,
+    paddingTop: 0,
+  },
+  footer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: 24,
+    paddingTop: 0,
+  },
+})
 
 interface CardProps
   extends React.ComponentPropsWithoutRef<typeof View>,
@@ -26,7 +69,11 @@ const Card = React.forwardRef<React.ElementRef<typeof View>, CardProps>(
   ({ className, variant, ...props }, ref) => (
     <View
       ref={ref}
-      className={cn(cardVariants({ variant }), className)}
+      style={[
+        styles.card,
+        variant === 'default' && styles.default,
+        variant === 'outline' && styles.outline,
+      ]}
       {...props}
     />
   )
@@ -37,29 +84,29 @@ const CardHeader = React.forwardRef<React.ElementRef<typeof View>, React.Compone
   ({ className, ...props }, ref) => (
     <View
       ref={ref}
-      className={cn("flex flex-col space-y-1.5 p-6", className)}
+      style={styles.header}
       {...props}
     />
   )
 )
 CardHeader.displayName = "CardHeader"
 
-const CardTitle = React.forwardRef<React.ElementRef<typeof View>, React.ComponentPropsWithoutRef<typeof View>>(
+const CardTitle = React.forwardRef<React.ElementRef<typeof Text>, React.ComponentPropsWithoutRef<typeof Text>>(
   ({ className, ...props }, ref) => (
-    <View
+    <Text
       ref={ref}
-      className={cn("text-2xl font-semibold leading-none tracking-tight", className)}
+      style={styles.title}
       {...props}
     />
   )
 )
 CardTitle.displayName = "CardTitle"
 
-const CardDescription = React.forwardRef<React.ElementRef<typeof View>, React.ComponentPropsWithoutRef<typeof View>>(
+const CardDescription = React.forwardRef<React.ElementRef<typeof Text>, React.ComponentPropsWithoutRef<typeof Text>>(
   ({ className, ...props }, ref) => (
-    <View
+    <Text
       ref={ref}
-      className={cn("text-sm text-muted-foreground", className)}
+      style={styles.description}
       {...props}
     />
   )
@@ -68,7 +115,7 @@ CardDescription.displayName = "CardDescription"
 
 const CardContent = React.forwardRef<React.ElementRef<typeof View>, React.ComponentPropsWithoutRef<typeof View>>(
   ({ className, ...props }, ref) => (
-    <View ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+    <View ref={ref} style={styles.content} {...props} />
   )
 )
 CardContent.displayName = "CardContent"
@@ -77,7 +124,7 @@ const CardFooter = React.forwardRef<React.ElementRef<typeof View>, React.Compone
   ({ className, ...props }, ref) => (
     <View
       ref={ref}
-      className={cn("flex flex-col items-center p-6 pt-0", className)}
+      style={styles.footer}
       {...props}
     />
   )

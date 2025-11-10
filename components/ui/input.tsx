@@ -1,15 +1,14 @@
 import * as React from "react"
-import { TextInput } from "react-native"
+import { TextInput, StyleSheet } from "react-native"
 import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
 
 const inputVariants = cva(
-  "web:flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm web:ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium web:placeholder:text-muted-foreground web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring web:focus-visible:ring-offset-2",
+  "",
   {
     variants: {
       size: {
-        default: "h-10 px-3 py-2",
-        sm: "h-9 px-2 py-1",
+        default: "",
+        sm: "",
       },
     },
     defaultVariants: {
@@ -17,6 +16,27 @@ const inputVariants = cva(
     },
   }
 )
+
+const styles = StyleSheet.create({
+  input: {
+    width: '100%',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#ffffff',
+    fontSize: 14,
+  },
+  sizeDefault: {
+    height: 40,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  sizeSm: {
+    height: 36,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+})
 
 interface InputProps
   extends React.ComponentPropsWithoutRef<typeof TextInput>,
@@ -26,7 +46,11 @@ const Input = React.forwardRef<React.ElementRef<typeof TextInput>, InputProps>(
   ({ className, size, ...props }, ref) => {
     return (
       <TextInput
-        className={cn(inputVariants({ size }), className)}
+        style={[
+          styles.input,
+          size === 'default' && styles.sizeDefault,
+          size === 'sm' && styles.sizeSm,
+        ]}
         ref={ref}
         {...props}
       />

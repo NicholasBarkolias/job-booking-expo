@@ -1,25 +1,24 @@
 import * as React from "react"
-import { Text, Pressable } from "react-native"
+import { Text, Pressable, StyleSheet } from "react-native"
 import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group flex items-center justify-center rounded-md web:ring-offset-background web:ring-ring web:ring-offset-2 web:focus-within:ring-2 web:focus-within:ring-offset-2",
+  "",
   {
     variants: {
       variant: {
-        default: "bg-primary web:ring-primary",
-        destructive: "bg-destructive web:ring-destructive",
-        outline: "border border-input bg-background web:ring-ring",
-        secondary: "bg-secondary web:ring-secondary",
+        default: "",
+        destructive: "",
+        outline: "",
+        secondary: "",
         ghost: "",
-        link: "web:underline-offset-4 web:hover:underline",
+        link: "",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "",
+        sm: "",
+        lg: "",
+        icon: "",
       },
     },
     defaultVariants: {
@@ -30,22 +29,22 @@ const buttonVariants = cva(
 )
 
 const buttonTextVariants = cva(
-  "text-sm font-medium text-foreground web:group-focus-within:ring-2",
+  "",
   {
     variants: {
       variant: {
-        default: "text-primary-foreground",
-        destructive: "text-destructive-foreground",
-        outline: "text-foreground",
-        secondary: "text-secondary-foreground",
-        ghost: "text-foreground",
-        link: "text-primary web:underline",
+        default: "",
+        destructive: "",
+        outline: "",
+        secondary: "",
+        ghost: "",
+        link: "",
       },
       size: {
-        default: "text-base",
-        sm: "text-sm",
-        lg: "text-lg",
-        icon: "text-base",
+        default: "",
+        sm: "",
+        lg: "",
+        icon: "",
       },
     },
     defaultVariants: {
@@ -55,6 +54,90 @@ const buttonTextVariants = cva(
   }
 )
 
+const styles = StyleSheet.create({
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 6,
+  },
+  default: {
+    backgroundColor: '#3b82f6',
+  },
+  destructive: {
+    backgroundColor: '#ef4444',
+  },
+  outline: {
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#ffffff',
+  },
+  secondary: {
+    backgroundColor: '#f1f5f9',
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+  },
+  link: {
+    backgroundColor: 'transparent',
+  },
+  sizeDefault: {
+    height: 40,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  sizeSm: {
+    height: 36,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+  },
+  sizeLg: {
+    height: 44,
+    borderRadius: 6,
+    paddingHorizontal: 32,
+  },
+  sizeIcon: {
+    height: 40,
+    width: 40,
+  },
+  text: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1e293b',
+  },
+  textDefault: {
+    color: '#ffffff',
+  },
+  textDestructive: {
+    color: '#ffffff',
+  },
+  textOutline: {
+    color: '#1e293b',
+  },
+  textSecondary: {
+    color: '#1e293b',
+  },
+  textGhost: {
+    color: '#1e293b',
+  },
+  textLink: {
+    color: '#3b82f6',
+    textDecorationLine: 'underline',
+  },
+  textSizeDefault: {
+    fontSize: 16,
+  },
+  textSizeSm: {
+    fontSize: 14,
+  },
+  textSizeLg: {
+    fontSize: 18,
+  },
+  textSizeIcon: {
+    fontSize: 16,
+  },
+})
+
 interface ButtonProps
   extends React.ComponentPropsWithoutRef<typeof Pressable>,
     VariantProps<typeof buttonVariants> {}
@@ -63,7 +146,19 @@ const Button = React.forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>
   ({ className, variant, size, ...props }, ref) => {
     return (
       <Pressable
-        className={cn(buttonVariants({ variant, size }), className)}
+        style={[
+          styles.button,
+          variant === 'default' && styles.default,
+          variant === 'destructive' && styles.destructive,
+          variant === 'outline' && styles.outline,
+          variant === 'secondary' && styles.secondary,
+          variant === 'ghost' && styles.ghost,
+          variant === 'link' && styles.link,
+          size === 'default' && styles.sizeDefault,
+          size === 'sm' && styles.sizeSm,
+          size === 'lg' && styles.sizeLg,
+          size === 'icon' && styles.sizeIcon,
+        ]}
         ref={ref}
         {...props}
       />
@@ -80,7 +175,19 @@ const ButtonText = React.forwardRef<React.ElementRef<typeof Text>, ButtonTextPro
   ({ className, variant, size, ...props }, ref) => {
     return (
       <Text
-        className={cn(buttonTextVariants({ variant, size }), className)}
+        style={[
+          styles.text,
+          variant === 'default' && styles.textDefault,
+          variant === 'destructive' && styles.textDestructive,
+          variant === 'outline' && styles.textOutline,
+          variant === 'secondary' && styles.textSecondary,
+          variant === 'ghost' && styles.textGhost,
+          variant === 'link' && styles.textLink,
+          size === 'default' && styles.textSizeDefault,
+          size === 'sm' && styles.textSizeSm,
+          size === 'lg' && styles.textSizeLg,
+          size === 'icon' && styles.textSizeIcon,
+        ]}
         ref={ref}
         {...props}
       />
